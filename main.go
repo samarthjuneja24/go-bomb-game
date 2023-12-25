@@ -20,7 +20,7 @@ func main() {
 	outputChannel := make(chan context.Context)
 
 	//inputChannel listener go routine started
-	go Play1(inputChannel, outputChannel)
+	go Play(inputChannel, outputChannel)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(randomNumber)*time.Second)
 	ctx = context.WithValue(ctx, "sender", "player1")
 	ctx = context.WithValue(ctx, "receiver", "player2")
@@ -39,7 +39,7 @@ func main() {
 	close(inputChannel)
 }
 
-func Play1(inputChannel <-chan context.Context, outputChannel chan<- context.Context) {
+func Play(inputChannel <-chan context.Context, outputChannel chan<- context.Context) {
 	for ctx := range inputChannel {
 		newSender := ctx.Value("receiver").(string)
 		newReceiver := ctx.Value("sender").(string)
