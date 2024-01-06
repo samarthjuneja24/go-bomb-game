@@ -8,9 +8,15 @@ import (
 )
 
 func main() {
-	// Generate a random number in the range of 1-10
-	// The timeout will be for that many seconds
-	randomNumber := rand.Intn(10) + 1
+
+	//Assigning the value as a Random number, can be changed as per convenience
+	numberOfSecondsGameShouldRunFor := rand.Intn(10) + 1
+	totalNumberOfPlayers := 10
+
+	var listOfPlayers []int
+	for i := 1; i <= totalNumberOfPlayers; i++ {
+		listOfPlayers = append(listOfPlayers, i)
+	}
 
 	// Creating two channels
 	// inputChannel takes input, switches the sender and receiver and sends it to the outputChannel.
@@ -20,10 +26,10 @@ func main() {
 	outputChannel := make(chan context.Context)
 
 	//inputChannel listener go routine started
-	go Play(inputChannel, outputChannel)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(randomNumber)*time.Second)
-	ctx = context.WithValue(ctx, "sender", "player1")
-	ctx = context.WithValue(ctx, "receiver", "player2")
+	go Play(inputChannel, outputChannel, listOfPlayers)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(numberOfSecondsGameShouldRunFor)*time.Second)
+	ctx = context.WithValue(ctx, "sender", 1)
+	ctx = context.WithValue(ctx, "receiver", PlayerToPassTo(1, listOfPlayers))
 	defer cancel()
 	inputChannel <- ctx
 
@@ -31,7 +37,7 @@ func main() {
 		//Waiting for response sent from inputChannel for loop
 		processedCtx := <-outputChannel
 		if err := processedCtx.Err(); err != nil {
-			fmt.Printf("Context finished with error: %v\n", processedCtx.Value("receiver"))
+			fmt.Printf("Player eliminated: %v\n", processedCtx.Value("receiver"))
 			break
 		}
 		inputChannel <- processedCtx.(context.Context)
@@ -39,14 +45,24 @@ func main() {
 	close(inputChannel)
 }
 
-func Play(inputChannel <-chan context.Context, outputChannel chan<- context.Context) {
+func Play(inputChannel <-chan context.Context, outputChannel chan<- context.Context, listOfPlayers []int) {
 	for ctx := range inputChannel {
-		newSender := ctx.Value("receiver").(string)
-		newReceiver := ctx.Value("sender").(string)
+		newSender := ctx.Value("receiver").(int)
+		newReceiver := PlayerToPassTo(newSender, listOfPlayers)
 		newCtx := context.WithValue(ctx, "sender", newSender)
 		newCtx = context.WithValue(newCtx, "receiver", newReceiver)
-		fmt.Printf("Passing to player %s\n", newReceiver)
+		fmt.Printf("Passing to player %v\n", newReceiver)
 		outputChannel <- newCtx
 	}
 	close(outputChannel)
+}
+
+func PlayerToPassTo(passingPlayer int, playersList []int) int {
+	randomPosition := rand.Intn(len(playersList))
+
+	//If the same player comes up, do repeat the function else return the new player's number
+	if randomPosition != passingPlayer {
+		return randomPosition
+	}
+	return PlayerToPassTo(passingPlayer, playersList)
 }

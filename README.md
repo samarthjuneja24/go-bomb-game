@@ -4,15 +4,13 @@
 <h3>
 What does this do?
 </h3>
-Passing a bomb between two players with a timeout set in context.The player having the bomb at the end of the timer expiry loses.
+Passing a bomb between n players(number of players can be set in the code) with a timeout set in context.The player having the bomb at the end of the timer expiry loses.
 
 We're passing the sender and receiver in the context and pass it through the channels. The receiver at the end of context timeout is the loser.
 <h3>
 How to run the code?
 </h3>
-<code>
-go run main.go
-</code>
+<code>go run main.go</code>
 
 <h3>
 Why did I write this code?
